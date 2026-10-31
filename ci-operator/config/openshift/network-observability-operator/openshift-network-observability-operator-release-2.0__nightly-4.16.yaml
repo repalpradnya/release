@@ -23,6 +23,12 @@ releases:
       product: ocp
       stream: nightly
       version: "4.16"
+  ppc64le-latest:
+    candidate:
+      architecture: ppc64le
+      product: ocp
+      stream: nightly
+      version: "4.16"
 resources:
   '*':
     requests:
@@ -76,6 +82,33 @@ tests:
     - chain: openshift-e2e-test-netobserv-pf5
     workflow: cucushift-installer-rehearse-aws-ipi
   timeout: 10h0m0s
+- as: netobserv-powervs-ipi-ppc64le-f28
+  cluster: build01
+  cron: 0 6 20 * *
+  reporter_config:
+    channel: '#team-qe-netobserv'
+    job_states_to_report:
+    - aborted
+    - error
+    - failure
+    - success
+    report_template: '{{ if eq .Status.State "success" }} :green_jenkins_circle: {{
+      else }} :red_jenkins_circle: {{ end }} Job *{{.Spec.Job}}* ended with *{{.Status.State}}*.
+      <{{.Status.URL}}|View logs>'
+  steps:
+    cluster_profile: powervs-10
+    dependencies:
+      OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE: release:ppc64le-latest
+    env:
+      ARCH: ppc64le
+      BASE_DOMAIN: ipi-ppc64le.cis.ibm.net
+      BRANCH: "4.16"
+      OPENSHIFT_INSTALL_EXPERIMENTAL_DISABLE_IMAGE_POLICY: "true"
+    test:
+    - ref: netobserv-apply-redhat-operators
+    - chain: openshift-e2e-test-netobserv-pf5
+    workflow: ipi-powervs
+  timeout: 12h0m0s
 zz_generated_metadata:
   branch: release-2.0
   org: openshift
